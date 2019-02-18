@@ -29,7 +29,7 @@ class AngleEstimator:
         all_mus = []
     
         for i, path in enumerate(self.img_paths[1:]):
-            print('Frame', i, mu, sigma)
+            #print('Frame', i, mu, sigma)
             m, s = self.find_angle(cv2.imread(path,0))
             if m == None:
                 continue
@@ -41,10 +41,10 @@ class AngleEstimator:
             sigma = (sigma*math.e**2) / (sigma + math.e**2)
 
         #mu = math.pi/2 - mu
-        print('final data', mu, sigma)
+        #print('final data', mu, sigma)
         med_mus = np.median(all_mus)
         #median_abs_dev = np.median(np.abs(np.array(all_mus) - med_mus))
-        med_sigma = np.std(med_mus)
+        med_sigma = np.std(all_mus)
         print('med final data', np.median(all_mus))
         
         if debug:
@@ -62,10 +62,18 @@ class AngleEstimator:
 #            cv2.line(img, (x1,y1), (x2,y2), 32, 2)
 #            ((x1,y1), (x2,y2))= self.to_line(480/2, mu-sigma)
 #            cv2.line(img, (x1,y1), (x2,y2), 32, 2)
+            plt.figure()
             plt.imshow(img)
-            plt.show()
+            plt.title('Estimate and Variance Overlaid on Frame')
+            #plt.show()
+            plt.savefig('results/psf_overlay.eps', format='eps')
+            plt.figure()
             plt.hist(all_mus, 20)
-            plt.show()
+            plt.title('Per-Frame $\\theta$ Estimates')
+            plt.savefig('results/psf_hist.eps', format='eps')
+            #plt.show()
+        
+        return np.median(all_mus) - math.pi/2, med_sigma
 
     def to_line(self, rho, theta):
         a = np.cos(theta)
@@ -122,8 +130,8 @@ class AngleEstimator:
             self.debug_angles(img, h)
 
 
-        median_angle = np.median(angles)
-        median_abs_dev = 1.4826 * np.median(np.abs(angles - np.median(angles)))
+        #median_angle = np.median(angles)
+        #median_abs_dev = 1.4826 * np.median(np.abs(angles - np.median(angles)))
 
         #mean_angle = np.mean(angles)
         #mean_rho = np.mean(rhos)
