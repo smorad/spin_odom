@@ -1,4 +1,4 @@
-from deblur import AngleEstimator
+from deblur import AngleEstimator, Deblur
 import math
 from matplotlib import pyplot as plt
 #a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170536_12218', 625, 1000)
@@ -8,11 +8,14 @@ from matplotlib import pyplot as plt
 #a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 900, 905)
 #a.estimate(debug=True)
 def run():
-    for i in range(10):
-        offset = 1120
-        a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', offset+i, offset+i+1)
-        a.estimate(debug=True)
-    
+    a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 1110, 1160)
+    a.estimate()
+    a.estimate_rate_seq_frames()
+    #actual_rate = (37 / 90) * 2*math.pi
+    actual_rate = 2*math.pi / (37 / 90)
+    print('actual rate rad/s', actual_rate)
+    #d = Deblur(a) 
+    #d.deblur()
 
 
 def benchmark():
@@ -55,5 +58,5 @@ def benchmark():
     plt.savefig('results/psf_direction_error.eps', format='eps')
 
     
-#run()
-benchmark()
+run()
+#benchmark()
