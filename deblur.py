@@ -69,6 +69,60 @@ class AngleEstimator:
         #print('\n'.join(self.img_paths))
         #print(self.img_paths)
 
+    def stitch(self):
+        right_offset = 2
+        frames = len(self.img_paths[-right_offset:]) - 1
+        xrate, yrate = self.px_rate_per_frame
+        max_rows = int(480 + yrate*frames)
+        max_cols = int(640 + xrate*frames)
+        pano = np.ndarray((max_rows, max_cols), dtype=float)
+        for i, path in enumerate(self.img_paths[-right_offset:]):
+            trans = [int(xrate * i), int(yrate * i)]
+            img = cv2.imread(path, 0)
+            print(trans)
+            pano[trans[1]:trans[1] + 480, trans[0]:trans[0] + 640] = img
+        print(pano)
+        plt.imshow(pano, cmap='gray')
+        plt.show()
+
+    def build_homography(self):
+        #cv2.ocl.setUseOpenCL(False)
+        Ry = np.array([
+            [math.cos(self.angle), 0, math.sin(self.angle)],
+            [0, 1, 0],
+            [-math.sin(self.angle), 0, math.cos(self.angle)]
+        ])
+        img0 = cv2.imread(self.img_paths[0])
+        i = 1
+        for path in self.img_paths[1:]:
+            angle = self.rate * (i/90) 
+            Rz = np.array([
+                [math.cos(angle), -math.sin(angle), 0],
+                [math.sin(angle), math.cos(angle), 0],
+                [0, 0, 1]
+            ])
+
+            R = Rz*Ry
+            rows = 480
+            cols = 640 * (i+1)
+            #R = np.eye(3)
+
+            img1 = cv2.imread(path)
+
+            result = cv2.warpPerspective(img0, R, (cols, rows))
+            plt.imshow(result)
+            plt.show()
+            result[0:480, cols:,:] = img1
+            #result = cv2.warpPerspective(img0, R,
+            #                    (img0.shape[1] + img1.shape[1], img1.shape[0]))
+            #result[0:img1.shape[0], 0:img1.shape[1]] = img1
+            #result[0:img1.shape[0], img1.shape[1]:] = img1
+
+            img0 = result
+            i += 1
+
+            plt.imshow(result)
+            plt.show()
 
 
     def estimate(self, debug=False):
@@ -204,74 +258,6 @@ class AngleEstimator:
             lengths += [length]
         print(np.mean(lengths))
         return np.mean(lengths)
-            #m = (y1 - y0) / (x1 - x0)
-            #b = y0
-            #xs = np.linspace
-            #inverse = (1 / m) * x + b
-
-
-
-#            xs = range(0, 640)
-#            ys = [int(math.tan(angles[i] - math.pi/2) * x + rhos[i]) for x in xs] # y=mx+b
-#            indices = [xs, ys]
-#            # remove off screen values
-#            indices = [idx for idx in indices if idx[1] < 480 and idx[1] > 0]
-#            
-#            plt.figure()
-#            plt.imshow(edges)
-#            plt.figure()
-#            plt.plot(xs, ys)
-#            plt.xlim(0, 640)
-#            plt.ylim(480, 0)
-#            plt.show()
-#            #for j in range(len(xs - 1)):
-#            comparisons = zip(indices, indices[1:])
-#            for a, b in comparisons:
-#                # edge found, start counting
-#                if edges[a[1]][a[0]]:
-#                    print('edges')
-#                    pixels = 0
-#                    # check one above and below
-#                    if img[b[1]][b[0]] < 0.9 * img[a[1]][a[0]] \
-#                            or img[b[1]]: # if prev image < cur image 
-#                        pixels += 1
-#                    else:
-#                        lengths += [pixels]
-#                        pixels = 0
-#        print(lengths) 
-#        
-#
-
-
-        #def fn(x, b):
-        #    return int(math.tan(self.angle) * x + b)
-
-#        psf_lengths = []
-#        edges = cv2.Canny(img,100,100)
-#        for b in range(480):
-#            # y = mx + b
-#            counting = False
-#            for x in range(640-1):
-#                y = fn(x, b)
-#                if y >= 475: # TODO fix this shit
-#                    continue
-#                pixels = 0
-#                if edges[y][x]:
-#                    # TODO Handle edge conditions
-#                    counting = True
-#                if counting:
-#                    pixels += 1
-#                    old_value = img[y][x]
-#                    new_value = img[fn(x+1,b)][x+1]
-#
-#                    if new_value < 0.2 * old_value:
-#                        psf_lengths += [pixels]
-#                        pixels = 0
-#                        counting = False
-#
-#        print('lengths', psf_lengths)
-#        print('frame med', np.median(psf_lengths))
-#        return np.median(psf_lengths)
 
 
     def estimate_rate_sift(self):
@@ -305,7 +291,6 @@ class AngleEstimator:
 
     def estimate_rate_seq_frames(self):
         fps = 90
-        h_fov = math.radians(15.5) * 2 # measured from center out
         good_lengths = []
         for f0, f1 in zip(self.img_paths, self.img_paths[1:]):
             orb = cv2.ORB_create()
@@ -328,22 +313,39 @@ class AngleEstimator:
 
                 slope = (y1 - y0) / (x1 - x0)
 
-                if slope - math.tan(self.angle) < 0.1:
+                if slope - math.tan(self.angle) < 0.000001: # TODO should be bigger
                     good_lengths.append(math.sqrt((y1 - y0)**2 + (x1-x0)**2))
-                    print(good_lengths[-1])
+                    #print(good_lengths[-1])
 
+        print('Found', len(good_lengths), 'good SIFT samples')
         dist = np.median(good_lengths)
-        rad_per_px = h_fov / 640 
 
-        print('rate', dist * rad_per_px * fps)
+
+        #final_rate = dist_rad * fps
+        final_rate = self.px_to_rad(dist) * fps
+        self.rate = final_rate
+
+        print('final rate', final_rate)
+        return final_rate
+
+
+    def px_to_rad(self, dist_px):
+        h_fov = math.radians(15.55) * 2 # measured from center out
+        v_fov = math.radians(12.20) * 2
+
+        px_dist_x = dist_px * math.cos(self.angle)
+        px_dist_y = dist_px * math.sin(self.angle)
+
+        rad_per_px_x = (h_fov / 640)
+        rad_per_px_y = (v_fov / 480)
+
+        self.px_rate_per_frame = [px_dist_x, px_dist_y]
+
+        #dist_rad = rad_per_px_x * px_dist_x + rad_per_px_y * px_dist_y 
+        dist_rad = math.sqrt((px_dist_x * rad_per_px_x)**2 + (px_dist_y * rad_per_px_y)**2)  
+        return dist_rad
             
         
-
-            #out = cv2.drawMatches(img0, kp0, img1, kp1, matches, None)
-            #plt.imshow(out)
-            #plt.show()
-
-            
     def estimate_rate(self):
         window_frames = 40
         base_frames = 5
