@@ -1,4 +1,4 @@
-from deblur import AngleEstimator, Deblur
+from deblur import AngleEstimator 
 import math
 from matplotlib import pyplot as plt
 #a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170536_12218', 625, 1000)
@@ -7,6 +7,13 @@ from matplotlib import pyplot as plt
 
 #a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 900, 905)
 #a.estimate(debug=True)
+
+def deblur():
+    a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 1100, 1114)
+    a.estimate()
+    a.estimate_rate_seq_frames()
+    a.deblur_frame(0)
+
 def run():
     a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 1100, 1114)
     a.estimate()
@@ -83,5 +90,6 @@ def benchmark():
     plt.ylabel('$\dot{\\theta_a} - \dot{\\theta_e}$ (rad/s)')
     plt.savefig('results/rate_error.eps', format='eps')
     
-run()
+#run()
+deblur()
 #benchmark()

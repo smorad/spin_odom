@@ -11,54 +11,6 @@ from skimage import restoration
 from skimage import feature
 
 
-class Deblur:
-    # see https://github.com/opencv/opencv/blob/master/samples/python/deconvolution.py
-    def __init__(self, angle_estimator, width=640, height=480):
-        self.est = angle_estimator
-        self.angle = self.est.estimate()[0]
-        self.w = width
-        self.h = height
-
-    def deblur(self):
-        img = cv2.imread(self.est.img_paths[0],0)
-        img = img / 255
-        new_img = self.restore(img, 80)
-        plt.figure()
-        plt.imshow(img)
-        plt.title('before')
-        plt.figure()
-        plt.imshow(new_img)
-        plt.title('after')
-        plt.show()
-
-    def restore(self, img, dist):
-        psf = self.psf(dist)
-        #restored = restoration.wiener(img, psf, 1100)
-        restored, _ = restoration.unsupervised_wiener(img, psf)
-
-        return restored
-
-
-    def psf(self, dist, diam=80):
-        dims = (dist, dist * self.angle) # dimension of filter
-        print(dims)
-        kernel = np.ones((1, dist), np.float32)
-        c, s = np.cos(self.angle), np.sin(self.angle)
-        A = np.float32([[c, -s, 0], [s, c, 0]])
-        diam2 = int(diam / 2)
-        A[:,2] = (diam2, diam2) - np.dot(A[:,:2], ((dist-1)*0.5, 0))
-        kernel = cv2.warpAffine(kernel, A, (diam, diam), flags=cv2.INTER_CUBIC)
-        kernel = kernel * 127
-        print('kernel', kernel)
-        print('kmax should be less than 127:', np.max(kernel))
-        #kernel = np.int8(kernel) # to 0,255 fmt
-        print('kernel', kernel)
-        plt.figure()
-        plt.imshow(kernel)
-        return kernel
-                
-
-
 class AngleEstimator:
 
     # Estimates rotation axis given images
@@ -70,60 +22,81 @@ class AngleEstimator:
         #print(self.img_paths)
 
     def stitch(self):
-        right_offset = 2
+        right_offset = 10
         frames = len(self.img_paths[-right_offset:]) - 1
         xrate, yrate = self.px_rate_per_frame
         max_rows = int(480 + yrate*frames)
         max_cols = int(640 + xrate*frames)
         pano = np.ndarray((max_rows, max_cols), dtype=float)
+        #psf = self.psf2(np.linalg.norm(self.px_rate_per_frame))
         for i, path in enumerate(self.img_paths[-right_offset:]):
             trans = [int(xrate * i), int(yrate * i)]
             img = cv2.imread(path, 0)
-            print(trans)
+            #img = restoration.richardson_lucy(img, psf)
+            #img = restoration.wiener(img, psf, 1/5000)
+            #print(trans)
             pano[trans[1]:trans[1] + 480, trans[0]:trans[0] + 640] = img
-        print(pano)
+        #print(pano)
         plt.imshow(pano, cmap='gray')
         plt.show()
 
-    def build_homography(self):
-        #cv2.ocl.setUseOpenCL(False)
-        Ry = np.array([
-            [math.cos(self.angle), 0, math.sin(self.angle)],
-            [0, 1, 0],
-            [-math.sin(self.angle), 0, math.cos(self.angle)]
-        ])
-        img0 = cv2.imread(self.img_paths[0])
-        i = 1
-        for path in self.img_paths[1:]:
-            angle = self.rate * (i/90) 
-            Rz = np.array([
-                [math.cos(angle), -math.sin(angle), 0],
-                [math.sin(angle), math.cos(angle), 0],
-                [0, 0, 1]
-            ])
 
-            R = Rz*Ry
-            rows = 480
-            cols = 640 * (i+1)
-            #R = np.eye(3)
 
-            img1 = cv2.imread(path)
+    def deblur_frame(self, idx):
+        img = cv2.imread(self.img_paths[idx], 0)
+        img = np.divide(img, np.max(img))
+        psf = self.psf2(np.linalg.norm(self.px_rate_per_frame))
+        #img2 = restoration.richardson_lucy(img, psf)
+        img2, _ = restoration.unsupervised_wiener(img, psf)
 
-            result = cv2.warpPerspective(img0, R, (cols, rows))
-            plt.imshow(result)
-            plt.show()
-            result[0:480, cols:,:] = img1
-            #result = cv2.warpPerspective(img0, R,
-            #                    (img0.shape[1] + img1.shape[1], img1.shape[0]))
-            #result[0:img1.shape[0], 0:img1.shape[1]] = img1
-            #result[0:img1.shape[0], img1.shape[1]:] = img1
+        plt.figure()
+        plt.imshow(img)
+        plt.figure()
+        plt.imshow(img2)
+        plt.show()
 
-            img0 = result
-            i += 1
+    def psf2(self, dist):
+        d = int(dist)
+        #sz = 10#int(self.px_rate_per_frame[0])
+        szx = int(self.px_rate_per_frame[0] / 50)#10
+        szy = int(self.px_rate_per_frame[1])#2
+        angle = self.angle
+        kern = np.ones((1, d), np.float32)
+        c, s = np.cos(angle), np.sin(angle)
+        A = np.float32([[c, -s, 0], [s, c, 0]])
+        szx2 = szx // 2
+        szy2 = szy // 2
+        A[:,2] = (szx2, szy2) - np.dot(A[:,:2], ((d-1)*0.5, 0))
+        kern = cv2.warpAffine(kern, A, (szx, szy), flags=cv2.INTER_CUBIC)
+        kern = kern / np.sum(kern)
+        plt.figure()
+        plt.imshow(kern)
+        plt.show()
+        # correct, dont transpose
+        return kern
 
-            plt.imshow(result)
-            plt.show()
-
+    def psf(self, dist, diam=10):
+        # TODO fix
+        diam = int(dist)
+        dist = int(dist)
+        kernel = np.ones((1, dist), np.float32)
+        c, s = np.cos(self.angle), np.sin(self.angle)
+        A = np.float32([[c, -s, 0], [s, c, 0]])
+        diam2 = int(diam / 2)
+        A[:,2] = (diam2, diam2) - np.dot(A[:,:2], ((dist-1)*0.5, 0))
+        kernel = cv2.warpAffine(kernel, A, (diam, diam), flags=cv2.INTER_CUBIC)
+        print('k orig', kernel)
+        #kernel = kernel * 255
+        kernel = np.divide(kernel, np.sum(kernel))
+        print('sum', np.sum(kernel))
+        #print('kernel', kernel)
+        print('kmax should be less than 127:', np.max(kernel))
+        #kernel = np.int8(kernel) # to 0,255 fmt
+        #print('kernel', kernel)
+        plt.figure()
+        plt.imshow(kernel)
+        plt.show()
+        return kernel.transpose()
 
     def estimate(self, debug=False):
         # bayesian updating
