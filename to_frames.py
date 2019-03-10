@@ -3,7 +3,7 @@ import sys
 import os
 import cv2
 
-DATA_DIR = 'images/'
+DATA_DIR = 'images_new/'
 
 def main():
     vid_path = sys.argv[1]

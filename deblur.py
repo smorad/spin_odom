@@ -286,12 +286,13 @@ class AngleEstimator:
 
                 slope = (y1 - y0) / (x1 - x0)
 
-                if slope - math.tan(self.angle) < 0.000001: # TODO should be bigger
+                if slope - math.tan(self.angle) < 0.01: # TODO should be bigger
                     good_lengths.append(math.sqrt((y1 - y0)**2 + (x1-x0)**2))
                     #print(good_lengths[-1])
 
         print('Found', len(good_lengths), 'good SIFT samples')
-        dist = np.median(good_lengths)
+        #dist = np.median(good_lengths)
+        dist = np.nanmean(good_lengths)
 
 
         #final_rate = dist_rad * fps
