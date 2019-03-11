@@ -27,32 +27,31 @@ def run():
     #d.deblur()
 
 
-def benchmark():
+def benchmark(path, actual_slope, actual_rate, frames=100, offset=0):
     meds = []
     sigs = []
     error = []
     rates = []
     rate_errors = []
-    xs = range(200)
+    xs = range(frames)
     for i in xs:
-        offset = 1100
-        a = AngleEstimator('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', offset, offset+i+1)
+        #offset = 1100
+        #a = AngleEstimator('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', offset, offset+i+1)
+        a = AngleEstimator(path, offset, offset+i+1)
         if i < len(xs) - 1:
             m, s = a.estimate()
         else:
             a.estimate(debug=True)
 
         # + instead of - because img coordinate system is left-handed
-        #error += [m + math.atan2(203 - 240, 568 - 219)]
-        error += [abs(m) - abs(-0.090)]
-        #error += [abs(m + 0.1024)] # see matlab for how we got number 
+        #error += [abs(m) - abs(-0.090)]
+        error += [abs(m) - abs(actual_slope)]
         meds += [m]
         sigs += [s]
         
         # rates
         est_rate = a.estimate_rate_seq_frames()
         #actual_rate = 2*math.pi / (37 / 90) + 0.0771790049385805 # offset from slight shift
-        actual_rate = 20.7608
         rates += [est_rate]
         rate_errors += [actual_rate - est_rate]
 
@@ -112,4 +111,9 @@ def vicon():
 #deblur()
 #benchmark()
 #vicon()
-benchmark()
+#benchmark()
+        #actual_rate = 20.7608
+        #error += [abs(m) - abs(-0.090)]
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', -0.090, 20.7608, 100, 1100) # empty
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 0.0154, 8.1810, 100, 800)
+benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', -0.0462, 13.0839, 100, 970)

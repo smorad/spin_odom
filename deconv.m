@@ -4,7 +4,7 @@ close all
 
 f = imread('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856/frame1715_19003.jpg');
 %psf = fspecial('motion', 100, rad2deg(-0.1024));
-psf = fspecial('motion', 200, rad2deg(-0.1024));
+psf = fspecial('motion', 219, rad2deg(-0.1024));
 
 figure()
 image(f)
@@ -23,14 +23,14 @@ wnr = deconvlucy(f, psf);
 image(wnr)
 title('after')
 
-ft = real(ifft2(fft2(im2bw(f))));
-figure()
-imshow(ft, [])
-ft2 = real(ifft2(fft2(im2bw(wnr))));
-figure()
-imshow(ft2, [])
-figure()
-im2bw(wnr)
+% ft = real(ifft2(fft2(im2bw(f))));
+% figure()
+% imshow(ft, [])
+% ft2 = real(ifft2(fft2(im2bw(wnr))));
+% figure()
+% imshow(ft2, [])
+% figure()
+% im2bw(wnr)
 
 % gradient along angle
 % want lines to be parallel along axis of rotation

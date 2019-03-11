@@ -79,3 +79,63 @@ rz = rmoutliers(diff(subset(:,4))) * 100;
 
 mag = norm([rz ry])
 slope = tan(ry/ rz)
+
+%% chairs
+M = csvread('/home/smorad/spin_odom/speer_data/speer_2_5_chairs.csv', 6,1 );
+v_offset = 1275;
+f_offset = 675;
+
+beg_f = f_offset + 125;
+end_f = beg_f + 100;
+
+t_start = (beg_f - f_offset)  / 90;
+beg_v = t_start * 100 + v_offset
+
+t_end = (end_f - f_offset)  / 90;
+end_v = t_end * 100 + v_offset
+
+subset = M(round(beg_v-1):round(end_v-1),:);
+%zeros = find(subset(:,2)==0);
+%subset(zeros,:) = [];
+% 
+% rx = median(diff(subset(:,2))) * 100;
+% ry = median(diff(subset(:,3))) * 100;
+% rz = median(diff(subset(:,4))) * 100;
+
+rx = median(diff(subset(:,2))) * 100;
+ry = median(diff(subset(:,3))) * 100;
+rz = median(diff(subset(:,4))) * 100;
+
+
+mag = norm([rz ry])
+slope = tan(ry/ rz)
+
+%% pillars
+M = csvread('/home/smorad/spin_odom/speer_data/speer_2_4.csv', 6,1 );
+v_offset = 1378;
+f_offset = 570;
+
+beg_f = f_offset+400;
+end_f = beg_f + 100;
+
+t_start = (beg_f - f_offset)  / 90;
+beg_v = t_start * 100 + v_offset
+
+t_end = (end_f - f_offset)  / 90;
+end_v = t_end * 100 + v_offset
+
+subset = M(round(beg_v-1):round(end_v-1),:);
+%zeros = find(subset(:,2)==0);
+%subset(zeros,:) = [];
+% 
+% rx = median(diff(subset(:,2))) * 100;
+% ry = median(diff(subset(:,3))) * 100;
+% rz = median(diff(subset(:,4))) * 100;
+
+rx = median(diff(subset(:,2))) * 100;
+ry = median(diff(subset(:,3))) * 100;
+rz = median(diff(subset(:,4))) * 100;
+
+
+mag = norm([rz ry])
+slope = tan(ry/ rz)
