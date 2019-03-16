@@ -266,7 +266,7 @@ class AngleEstimator:
         fps = 90
         good_lengths = []
         for f0, f1 in zip(self.img_paths, self.img_paths[1:]):
-            orb = cv2.ORB_create()
+            orb = cv2.ORB_create(edgeThreshold=15)
             img0 = cv2.imread(f0, 0)
             img1 = cv2.imread(f1, 0)
             kp0, ds0 = orb.detectAndCompute(img0, None)
@@ -286,7 +286,7 @@ class AngleEstimator:
 
                 slope = (y1 - y0) / (x1 - x0)
 
-                if slope - math.tan(self.angle) < 0.01: # TODO should be bigger
+                if slope - math.tan(self.angle) < 0.05: # TODO should be bigger
                     good_lengths.append(math.sqrt((y1 - y0)**2 + (x1-x0)**2))
                     #print(good_lengths[-1])
 

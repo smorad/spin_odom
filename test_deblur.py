@@ -45,7 +45,7 @@ def benchmark(path, actual_slope, actual_rate, frames=100, offset=0):
 
         # + instead of - because img coordinate system is left-handed
         #error += [abs(m) - abs(-0.090)]
-        error += [abs(m) - abs(actual_slope)]
+        error += [m - actual_slope]
         meds += [m]
         sigs += [s]
         
@@ -94,14 +94,15 @@ def benchmark(path, actual_slope, actual_rate, frames=100, offset=0):
     plt.savefig('results/rate_error.eps', format='eps')
     
 
-def vicon():
-    a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 1100, 1200)
+def vicon(path, begin, frames):
+    a = AngleEstimator(path, begin, begin+frames)
+    #a = AngleEstimator('/home/smorad/spin_odom/images/speer_data/20190130_170303_4856', 1100, 1200)
     a.estimate()
     est_rate = a.estimate_rate_seq_frames()
     #actual_rate = (37 / 90) * 2*math.pi
-    actual_rate = 2*math.pi / (37 / 90) + 0.0771790049385805 # offset from slight shift
-    print('actual rate rad/s', actual_rate)
-    print('pct diff', (actual_rate - est_rate) / actual_rate * 100)
+    #actual_rate = 2*math.pi / (37 / 90) + 0.0771790049385805 # offset from slight shift
+    #print('actual rate rad/s', actual_rate)
+    #print('pct diff', (actual_rate - est_rate) / actual_rate * 100)
     a.stitch()
     #d = Deblur(a) 
     #d.deblur()
@@ -114,6 +115,12 @@ def vicon():
 #benchmark()
         #actual_rate = 20.7608
         #error += [abs(m) - abs(-0.090)]
-#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', -0.090, 20.7608, 100, 1100) # empty
-#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 0.0154, 8.1810, 100, 800)
-benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', -0.0462, 13.0839, 100, 970)
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', -0.090, 20.7608, 45, 1100) # empty
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 0.0154, 8.1810, 45, 800)
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', -0.0462, 13.0839, 45, 970)
+
+
+
+#vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', 1120, 45) # empty
+#vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 845, 45)
+vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', 970, 45)
