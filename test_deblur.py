@@ -115,12 +115,13 @@ def vicon(path, begin, frames):
 #benchmark()
         #actual_rate = 20.7608
         #error += [abs(m) - abs(-0.090)]
-#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', -0.090, 20.7608, 45, 1100) # empty
-#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 0.0154, 8.1810, 45, 800)
-#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', -0.0462, 13.0839, 45, 970)
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/empty', -0.0089, 20.7608, 45, 1100) # empty
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/chairs', 0.0154, 8.1810, 20, 800)
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/pillars', -0.0462, 13.0839, 45, 970)
+#benchmark('/home/smorad/spin_odom/images_new/speer_data_new/pillars', -0.0094203, 13.106, 20, 970)
 
 
 
-#vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172606_19738', 1120, 45) # empty
-#vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172457_783', 845, 45)
-vicon('/home/smorad/spin_odom/images_new/speer_data_new/20190128_172039_29678', 970, 45)
+vicon('/home/smorad/spin_odom/images_new/speer_data_new/empty', 1120, 45) # empty
+#vicon('/home/smorad/spin_odom/images_new/speer_data_new/chairs', 800, 20)
+#vicon('/home/smorad/spin_odom/images_new/speer_data_new/pillars', 955, 20)

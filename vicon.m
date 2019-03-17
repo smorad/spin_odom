@@ -56,7 +56,7 @@ v_offset = 1245;
 f_offset = 700;
 
 beg_f = 1100;
-end_f = beg_f + 100;
+end_f = beg_f + 200;
 
 t_start = (beg_f - f_offset)  / 90;
 beg_v = t_start * 100 + v_offset
@@ -103,8 +103,8 @@ subset = M(round(beg_v-1):round(end_v-1),:);
 % rz = median(diff(subset(:,4))) * 100;
 
 rx = median(diff(subset(:,2))) * 100;
-ry = median(diff(subset(:,3))) * 100;
-rz = median(diff(subset(:,4))) * 100;
+ry = (0.1899 - 0.02853) / (1310 - 1286) *100;%median(diff(subset(:,3))) * 100;
+rz = (0.2021 - 0.05171)/ (1384-1369) * 100;%median(diff(subset(:,4))) * 100;
 
 % fitFn = @(subset) polyfit(1:length(subset(:,2)), subset(:,2)', 1);
 % evalFn = @(model, subset) sum((subset(:,2) - polyval(model, 1:length(subset(:,2)))) .^2, 2); 
@@ -119,8 +119,8 @@ M = csvread('/home/smorad/spin_odom/speer_data/speer_2_4.csv', 6,1 );
 v_offset = 1378;
 f_offset = 570;
 
-beg_f = f_offset+400;
-end_f = beg_f + 100;
+beg_f = 970;
+end_f = beg_f + 45;
 
 t_start = (beg_f - f_offset)  / 90;
 beg_v = t_start * 100 + v_offset
@@ -137,8 +137,8 @@ subset = M(round(beg_v-1):round(end_v-1),:);
 % rz = median(diff(subset(:,4))) * 100;
 
 rx = median(diff(subset(:,2))) * 100;
-ry = median(diff(subset(:,3))) * 100;
-rz = median(diff(subset(:,4))) * 100;
+ry = median(diff(subset(:,3))) * 100;%(0.2021 - 0.05171)/ (1384-1369) * 100;
+rz = median(diff(subset(:,4))) * 100;%(5.78 - 0.6778) / (1413 - 1368) * 100;%
 
 
 mag = norm([rz ry])
